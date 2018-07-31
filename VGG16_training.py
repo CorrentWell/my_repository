@@ -14,12 +14,14 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 import numpy as np
 import time
+from matplotlib import pyplot as plt
+import tensorflow as tf
 
 # 分類するクラス
 classes = ["BG", "HCC"]
 nb_classes = len(classes)
 
-img_width, img_height = 150, 150
+img_width, img_height = 200, 200
 
 # トレーニング用とバリデーション用の画像格納先
 train_data_dir = 'for_VGG16/train'
@@ -29,8 +31,8 @@ validation_data_dir = 'for_VGG16/validation'
 nb_train_samples = 880
 nb_validation_samples = 220
 
-batch_size = 16
-nb_epoch = 10
+batch_size = 20 #テストデータ数を割り切れる数にするべき
+nb_epoch = 50
 
 
 result_dir = 'results'
@@ -41,7 +43,7 @@ if not os.path.exists(result_dir):
 def vgg_model_maker():
     """ VGG16のモデルをFC層以外使用。FC層のみ作成して結合して用意する """
 
-    # VGG16のロード。FC層は不要なので include_top=False
+    # VGG16のロード。
     input_tensor = Input(shape=(img_width, img_height, 3))
     vgg16 = VGG16(include_top=False, weights='imagenet', input_tensor=input_tensor)
 
@@ -99,8 +101,13 @@ if __name__ == '__main__':
         layer.trainable = False
 
     # 多クラス分類を指定
+    """
     vgg_model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.SGD(lr=1e-3, momentum=0.9),
+              metrics=['accuracy'])
+    """
+    vgg_model.compile(loss='binary_crossentropy',
+              optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
               metrics=['accuracy'])
 
     # 画像のジェネレータ生成
@@ -113,6 +120,12 @@ if __name__ == '__main__':
         nb_epoch=nb_epoch,
         validation_data=validation_generator,
         nb_val_samples=nb_validation_samples)
+    
+    x = range(nb_epoch)
+    for h in history:
+        plt.plot(x, history.history['acc'], label="test")
+        plt.plot(x, history.history['val_acc'], label="validation")
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     vgg_model.save_weights(os.path.join(result_dir, 'finetuning.h5'))
 

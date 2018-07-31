@@ -14,7 +14,7 @@ img_width, img_height = 150, 150
 result_dir = 'results'
 
 # このディレクトリにテストしたい画像を格納しておく
-test_data_dir = 'for_VGG16\validation'
+test_data_dir = 'for_VGG16/validation'
 
 def model_load():
     # VGG16, FC層は不要なので include_top=False
